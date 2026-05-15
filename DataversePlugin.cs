@@ -1,0 +1,24 @@
+using System.ComponentModel.Composition;
+using XrmToolBox.Extensibility;
+using XrmToolBox.Extensibility.Interfaces;
+
+namespace XrmDataversePlugin
+{
+    [Export(typeof(IXrmToolBoxPlugin))]
+    [ExportMetadata("Name", "Solution Documentor")]
+    [ExportMetadata("Description", "Visualise Dataverse solutions as ERDs, document flows, browse option sets and security roles, and output full fledged solution documentation.")]
+    [ExportMetadata("Author", "Nate Halliwell")]
+    [ExportMetadata("Version", "1.0.0")]
+    [ExportMetadata("SmallImageBase64", "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAH+SURBVDhPhZPPa9NgHMZzb9KmyVqSpbVrkia4tV3X2E7ZlNUyO6Ujc451o1ak4LYcxnBMdAcZbOzgBEHcEMcOooiCRy/+A4J4GIP9AbuKiDcRdnnkfbtmtHH18ED48jyf74+XMD6hBx6FNPgzI+CHy678VhGsZHq8THuByJ8tuMHw0gaCxSn6HciPwieqnQGscp6aSSj+5Qjq4S+o+98hTNRpnY2lOwM4LUuN8uZuI3wiZftjYxUz3xnAnktSI+moHvx0ASHnMa1zaqYzgOwYGCyBH7Ehre1A2fsE5fkH8IVJ8EM3wIb1/wBO7iBWHAi37jWmGa+h6+4y2Hhr97MBkgnRroMz8nRnTrcglu94DngmgIzbfiwu3o9gadbjdQHBsAlRTkLU8xCuVz3GJphPXQIXNcB1J04B3dEcUkkblfIWcjPriKVLnjAFpHOQ5xcQu19FuHgFfG8/GNI5m6lgb/0H3j89xtsnv3H54hy65FRLmJN0Ghr4+gIXDl/B2t+BNHENjByx4My+oeGmHq5+g3b7EcRpx1Wovgjz9SYNN2VsL4Mhe5OO77b+uICbYxuQIgOtE0QN2tE6eOkCos504wZa4irGCitYnf+Mqv0MCWMUbNtPQxTMWFBqNszdB+hZqUGwcqevQFaJxAbpQf8Vbsqv9YI3UwjoffCJcfwFZy+ZBr1ChewAAAAASUVORK5CYII=")]
+    [ExportMetadata("BigImageBase64", "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAATZSURBVFhHnZb9S1tnFMf93SQmuTea1+VNY02iRlNNrDb1pc6q8WVOqqvGqlSnU1tfGFpXN4uFtbgiSKW1rMyydg6Eso3ROUZXcIwy2GCjUBjbL2Uw9kPZH7BfvuM8d7kmeaK76Q8fbrj3uef7Pc8557nJytY7kBGCC5ojIWirW6CtiSahKa6BKjeff+cQslJvHIbKXIScykZZUN9yBvr2s9BHY/K9nPApqGw+7t2DUG5AcCEn1CQJR2MwLlyHaf1TWG4+YFfjpXUIncOSkapmxTuh2IDGd2xf/Ood2B89g+vp3zKOvd9gWrsP4fS4VI5ALRcjHcoMCC5Wc12kA3mLa3A8/jVJPI7zyXMYL29AV9/NTKiMBXyslzFAtY9nb76xwwknYvnwCwjdb0oG7CVcrFQUGVC7y1lAsXcC1nvfcKKJ2Ha+gzg4K5WhsJKLlYoiA9TVFJCazLL5GSeaiPXuLjNK69WuABcrFUUGsg1uqbtrX4Ppyi04f/iDE2b8/AKm1S3om3qlEpiL+FgvZYCmoLxOLgP1gfPHv5LFf3kB60cPkTu6KJ0HoSYuRjoUG1AZC+XTTxyYhfXOQ1i3H7OaWz/5FtatXRgml9mksOwVHkaKDRAqZ4CZEHonIPZfgNg3xRpOjE1DjJ1nV1b7/CD37kFkZIBQv1ICw7kFaCPtUl8kII7MQ10U5t45jIwNaMPN0JTWQmUpYuNJo0YZ05bTb21dF/fOYWRkgPpAaBtEtujmnsXRN/cpOoDiZGQgnn3q/UQy3QXFBigryi71fjroW6AuqODup0OxAcpKydFKZGJWkYFMAsZRajitAV1uIQSTH/o86ShVGiyRRNNqYz7UNg/UZv7znGTAaC2DzxtFsb9jn9AbcLSPcy8qQWjrgaGlBWLNsX2qq5Dj8ctrZAPugnpZNHx0ADWhc+xa3rOE4sozKPA0QiW4OJGD0AWCEOtqYX5rEnmtjTC2NyKvpUE2og9WIFtwSgZM1iATLivtRk/0GmYGH2B+5CvMje8iNrqNymAfe25zVHFC6dC4vUzEUHsczpVpeG4vovDmHDzrM3DMxZDXVMeea4+USAb8vjYm0Nv2AVbOP8H26j8yq/PPMNB1AyXFXWyNxvD/fzZpm0nAPtMP3/a7OPp0U8b/+QocC4MwRKrZmixqNApcVTnEMk8Uj3Nx9GucqBpj6wzmUk4wEWo0CpwXPQnP2oUk8ThHNt+GqeuUZCC+/Scj07g8+T0nTlxb/h0dEx8jOHQV7v4F9s/3IAzDUzDPzMG+sgj/l9c5ccK3swzLYKdkgMaNDBwPj7C6p4oT703soaFmiq2jSUnNOmkHbB4W2Nj5Kqt7qjjhvXsRptOtkgHqbApMNT77+gY2lp4niW8u/4mx3i2UB3rYOjojUkWTEJxSA0aq4VwcQumj1STxsr01uK+MwVAfkQzQS3ZXjdwHw923WCnen/2JNSSJ11VPsOc0qpxgGnS+gNwHzkvD8N57h2277/4SEzd1S2cDjSozQLvgLWqVR7HpxBxaGubZNZ45HVBKJoAhOCGEw/IoWvraWc3pGs9cqApDlevaP4jUohtOd4SJpUKZKxb/D5XBBV1xGRNLhTIncVrHfQtoLGkyrPYQzLYK6I1eLngm0FjSwaQtLEZOvg8qS/L34F8TRDmM/VWVKAAAAABJRU5ErkJggg==")]
+    [ExportMetadata("BackgroundColor", "#0b1220")]
+    [ExportMetadata("PrimaryFontColor", "#22d3ee")]
+    [ExportMetadata("SecondaryFontColor", "#cbd5e1")]
+    public class DataversePlugin : PluginBase
+    {
+        public override IXrmToolBoxPluginControl GetControl()
+        {
+            return new DataversePluginControl();
+        }
+    }
+}

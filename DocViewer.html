@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Doc Viewer</title>
+<style>
+:root{
+  --bg:#0b1220;--surface:#0f172a;--border:#1e293b;
+  --text-strong:#f1f5f9;--text:#cbd5e1;--muted:#475569;--subtle:#334155;
+  --accent:#22d3ee;--dot:rgba(148,163,184,0.15);--toolbar:rgba(11,18,32,0.97);
+  --card-shadow:0 8px 24px rgba(0,0,0,0.4);--th-bg:#0b1220;
+}
+html[data-theme="light"]{
+  --bg:#f8fafc;--surface:#ffffff;--border:#e2e8f0;
+  --text-strong:#0f172a;--text:#334155;--muted:#64748b;--subtle:#94a3b8;
+  --accent:#0891b2;--dot:rgba(100,116,139,0.18);--toolbar:rgba(248,250,252,0.97);
+  --card-shadow:0 2px 8px rgba(15,23,42,0.08);--th-bg:#f1f5f9;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#toolbar{background:var(--toolbar);border-bottom:1px solid var(--border);padding:7px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+#toolbar-title{color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+#content{flex:1;overflow-y:auto;padding:24px 28px;display:none}
+#empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none}
+#empty svg{opacity:.18}
+#empty p{color:var(--subtle);font-size:13px;text-align:center;line-height:1.6}
+#statusbar{background:var(--bg);border-top:1px solid var(--border);padding:3px 12px;font-size:10px;color:var(--subtle);flex-shrink:0}
+
+.hdr-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px 18px 16px 22px;position:relative;overflow:hidden;margin-bottom:24px;box-shadow:var(--card-shadow)}
+.hdr-bar{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:2px 0 0 2px}
+.hdr-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.hdr-name{font-size:17px;font-weight:700;color:var(--text-strong);line-height:1.3}
+.hdr-sub{font-size:11px;color:var(--muted);font-family:'Consolas','Menlo',monospace;margin-top:3px}
+.hdr-desc{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+.type-chip{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;letter-spacing:.03em}
+.chip-choice{background:#3b0764;color:#e9d5ff}
+html[data-theme="light"] .chip-choice{background:#f3e8ff;color:#6b21a8}
+.chip-local-os{background:#1c3a2e;color:#6ee7b7}
+html[data-theme="light"] .chip-local-os{background:#ecfdf5;color:#065f46}
+.chip-global-ext{background:#2d2a1c;color:#fcd34d}
+html[data-theme="light"] .chip-global-ext{background:#fffbeb;color:#92400e}
+.chip-role{background:#4c0519;color:#fecdd3}
+html[data-theme="light"] .chip-role{background:#fff1f2;color:#be123c}
+.chip-flow-active{background:#14532d;color:#86efac}
+html[data-theme="light"] .chip-flow-active{background:#f0fdf4;color:#15803d}
+.chip-flow-draft{background:#1e293b;color:#64748b}
+html[data-theme="light"] .chip-flow-draft{background:#f1f5f9;color:#64748b}
+
+.section{margin-bottom:24px}
+.section-title{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.section-count{background:var(--surface);border:1px solid var(--border);color:var(--muted);font-size:10px;padding:1px 7px;border-radius:10px;font-weight:600;letter-spacing:0}
+
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{background:var(--th-bg);color:var(--muted);font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)}
+.data-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--surface)}
+.data-table .mono{font-family:'Consolas','Menlo',monospace;font-size:11px;color:var(--muted)}
+.cell-main{color:var(--text);line-height:1.4}
+.cell-sub{font-family:'Consolas','Menlo',monospace;font-size:10px;color:var(--muted);margin-top:1px}
+
+.color-dot{display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid rgba(255,255,255,.15);vertical-align:middle}
+html[data-theme="light"] .color-dot{border-color:rgba(0,0,0,.15)}
+.no-color{width:12px;height:12px;border:1px solid var(--border);border-radius:50%;display:inline-block;vertical-align:middle}
+.val-badge{background:var(--surface);border:1px solid var(--border);color:var(--muted);font-size:11px;font-family:'Consolas','Menlo',monospace;padding:1px 6px;border-radius:4px}
+.empty-notice{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 16px;color:var(--muted);font-size:12px;font-style:italic}
+details.collapsible>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px}
+details.collapsible>summary::-webkit-details-marker{display:none}
+details.collapsible>summary::before{content:'▸';font-size:10px;color:var(--muted);flex-shrink:0}
+details.collapsible[open]>summary::before{content:'▾'}
+
+/* ── Flow steps ──────────────────────────────────────────────────────── */
+.trigger-block{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:6px;padding:12px 14px;margin-bottom:20px}
+.trigger-lbl{font-size:9.5px;font-weight:700;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+.trigger-name{font-size:13px;font-weight:600;color:var(--text-strong)}
+.trigger-desc{font-size:11px;color:var(--muted);margin-top:3px}
+.step-list{display:flex;flex-direction:column;gap:3px}
+.step-row{display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:var(--surface);border-radius:6px;border:1px solid var(--border)}
+.step-row:hover{border-color:var(--accent);opacity:.95}
+.step-num{color:var(--muted);font-size:10px;font-family:'Consolas','Menlo',monospace;min-width:22px;padding-top:2px;flex-shrink:0;text-align:right}
+.step-body{flex:1;min-width:0}
+.step-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.step-desc{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.step-badge{display:inline-block;font-size:9.5px;font-weight:600;padding:1px 7px;border-radius:10px;margin-top:4px;letter-spacing:.03em;border:1px solid transparent}
+.branch-row{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 0;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.branch-pip{width:3px;border-radius:2px;align-self:stretch}
+/* ── Markdown doc styles ─────────────────────────────────────────────── */
+.md-doc h1{font-size:20px;font-weight:700;color:var(--text-strong);margin:0 0 6px}
+.md-doc h2{font-size:15px;font-weight:700;color:var(--accent);letter-spacing:.04em;margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.md-doc h3{font-size:13px;font-weight:700;color:var(--text-strong);margin:18px 0 8px}
+.md-doc h4{font-size:12px;font-weight:600;color:var(--text);margin:12px 0 6px}
+.md-doc hr{border:none;border-top:1px solid var(--border);margin:20px 0}
+.md-doc p{font-size:12px;color:var(--text);margin:4px 0;line-height:1.6}
+.md-doc blockquote{border-left:3px solid var(--border);padding:4px 10px;margin:6px 0;color:var(--muted);font-size:11.5px;font-style:italic}
+.md-doc strong{color:var(--text-strong);font-weight:600}
+.md-doc em{color:var(--muted);font-style:italic}
+.md-doc ul{margin:4px 0 8px 18px;padding:0}
+.md-doc li{font-size:11.5px;color:var(--text);line-height:1.7;list-style:disc}
+.md-doc .mono{font-family:'Consolas','Menlo',monospace;font-size:10.5px;background:var(--bg);padding:1px 4px;border-radius:3px;color:var(--accent)}
+.md-doc .meta{color:var(--muted);font-size:11px;font-style:italic}
+.parse-warn{background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.3);border-radius:6px;padding:12px 16px;color:#f87171;font-size:12px;margin-bottom:16px}
+.param-grid{margin-top:6px;display:flex;flex-direction:column;gap:2px;padding:6px 8px;background:var(--bg);border-radius:4px;border:1px solid var(--border)}
+.param-row{display:flex;gap:8px;align-items:baseline;font-size:10.5px;line-height:1.4}
+.param-key{color:var(--muted);flex-shrink:0;min-width:90px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.param-val{color:var(--text);word-break:break-all;font-family:'Consolas','Menlo',monospace;font-size:10px}
+.param-val.is-expr{color:var(--accent)}
+</style>
+</head>
+<body>
+<div id="toolbar">
+  <span id="toolbar-title">Viewer</span>
+</div>
+<div id="content"></div>
+<div id="empty">
+  <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.2">
+    <rect x="3" y="3" width="18" height="18" rx="2"/>
+    <line x1="3" y1="9" x2="21" y2="9"/>
+    <line x1="9" y1="21" x2="9" y2="9"/>
+  </svg>
+  <p>Select an item from the list<br>to view its details</p>
+</div>
+<div id="statusbar"></div>
+
+<script>
+const content=document.getElementById('content');
+const empty=document.getElementById('empty');
+
+function show(html,title,status){
+  document.getElementById('toolbar-title').textContent=title;
+  document.getElementById('statusbar').textContent=status||'';
+  content.innerHTML=html;content.style.display='block';empty.style.display='none';content.scrollTop=0;
+}
+function x(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+function renderOptionSet(d){
+  const accent='#a78bfa';
+  let html=
+    `<div class="hdr-card">
+      <div class="hdr-bar" style="background:${accent}"></div>
+      <div class="hdr-top">
+        <div>
+          <div class="hdr-name">${x(d.displayName)}</div>
+          <div class="hdr-sub">${x(d.name)}</div>
+          ${d.description?`<div class="hdr-desc">${x(d.description)}</div>`:''}
+        </div>
+        ${d.scope==='local'
+            ?'<span class="type-chip chip-local-os">Local Choice</span>'
+            :d.scope==='globalNotInSolution'
+            ?'<span class="type-chip chip-global-ext">Global · Not in Solution</span>'
+            :'<span class="type-chip chip-choice">Global Choice</span>'}
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Values <span class="section-count">${d.values.length}</span></div>
+      <table class="data-table">
+        <thead><tr><th style="width:80px">Value</th><th>Label</th><th style="width:56px">Color</th><th>Description</th></tr></thead>
+        <tbody>
+          ${d.values.map(v=>`<tr>
+            <td><span class="val-badge">${x(v.value)}</span></td>
+            <td>${x(v.label)}</td>
+            <td>${v.color?`<span class="color-dot" style="background:${x(v.color)}" title="${x(v.color)}"></span>`:'<span class="no-color"></span>'}</td>
+            <td class="mono">${x(v.description||'')}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Used By <span class="section-count">${d.usedBy.length}</span></div>
+      ${d.usedBy.length===0
+        ?`<div class="empty-notice">Not found in any solution entities.</div>`
+        :`<table class="data-table">
+            <thead><tr><th>Table</th><th>Column</th></tr></thead>
+            <tbody>${d.usedBy.map(u=>`<tr>
+              <td><div class="cell-main">${x(u.tableDisplay)}</div><div class="cell-sub">${x(u.tableName)}</div></td>
+              <td><div class="cell-main">${x(u.columnDisplay)}</div><div class="cell-sub">${x(u.columnName)}</div></td>
+            </tr>`).join('')}</tbody>
+          </table>`}
+    </div>`;
+  show(html,'Option Sets',`${d.values.length} values · used by ${d.usedBy.length} column${d.usedBy.length===1?'':'s'}`);
+}
+
+function renderFlow(d){
+  const accent = '#22d3ee';
+  let html = '';
+
+  if(d.parseError){
+    const msg = d.parseErrorMessage ? ` — ${x(d.parseErrorMessage)}` : '';
+    html += `<div class="parse-warn">⚠ Could not fully parse this flow's definition${msg}</div>`;
+  }
+
+  // Header
+  const statusChip = d.isActive
+    ? `<span class="type-chip chip-flow-active">Active</span>`
+    : `<span class="type-chip chip-flow-draft">Draft</span>`;
+  html +=
+    `<div class="hdr-card">
+      <div class="hdr-bar" style="background:${accent}"></div>
+      <div class="hdr-top">
+        <div>
+          <div class="hdr-name">${x(d.name)}</div>
+          ${d.description?`<div class="hdr-desc">${x(d.description)}</div>`:''}
+        </div>
+        ${statusChip}
+      </div>
+    </div>`;
+
+  // Trigger
+  if(d.trigger){
+    html +=
+      `<div class="trigger-block">
+        <div class="trigger-lbl">⚡ Trigger</div>
+        <div class="trigger-name">${x(d.trigger.name)}</div>
+        <div class="trigger-desc">${x(d.trigger.description)}</div>
+      </div>`;
+  }
+
+  // Steps
+  html += `<div class="section"><div class="section-title">Steps <span class="section-count">${d.steps.filter(s=>!s.isBranchLabel).length}</span></div>`;
+  html += `<div class="step-list">`;
+
+  d.steps.forEach(s=>{
+    const indent = s.indent * 22;
+
+    if(s.isBranchLabel){
+      const bc = s.branchColor || '#64748b';
+      html +=
+        `<div class="branch-row" style="margin-left:${indent}px">
+          <div class="branch-pip" style="background:${bc};min-height:16px"></div>
+          <span style="color:${bc}">${x(s.name)}</span>
+        </div>`;
+      return;
+    }
+
+    const bc = s.badgeColor || '#475569';
+    const badgeBg = bc+'22';
+    const badgeBorder = bc+'55';
+    const paramsHtml = (s.params && s.params.length > 0)
+      ? `<div class="param-grid">${s.params.map(p=>{
+          const isExpr = p.value && (p.value.startsWith('@') || p.value.includes('@{'));
+          return `<div class="param-row">
+            <span class="param-key" title="${x(p.key)}">${x(p.key)}</span>
+            <span class="param-val${isExpr?' is-expr':''}" title="${x(p.value)}">${x(p.value)}</span>
+          </div>`;
+        }).join('')}</div>` : '';
+    html +=
+      `<div class="step-row" style="margin-left:${indent}px${indent>0?';border-left:2px solid var(--border)':''}">
+        <div class="step-num">${s.stepNumber}</div>
+        <div class="step-body">
+          <div class="step-name" title="${x(s.name)}">${x(s.name)}</div>
+          ${s.description?`<div class="step-desc" title="${x(s.description)}">${x(s.description)}</div>`:''}
+          ${s.badge?`<span class="step-badge" style="background:${badgeBg};color:${bc};border-color:${badgeBorder}">${x(s.badge)}</span>`:''}
+          ${paramsHtml}
+        </div>
+      </div>`;
+  });
+
+  html += `</div></div>`;
+
+  const actionCount = d.steps.filter(s=>!s.isBranchLabel).length;
+  show(html, 'Flows', `${actionCount} action${actionCount===1?'':'s'} · ${d.isActive?'Active':'Draft'}`);
+}
+
+function privBadge(level){
+  if(!level||level==='none') return `<span style="color:var(--subtle)">·</span>`;
+  const cfg={
+    user: ['#1e3a5f','#93c5fd','User'],
+    bu:   ['#2d2200','#fcd34d','BU'],
+    deep: ['#1a2e1a','#86efac','Deep'],
+    org:  ['#083344','#67e8f9','Org']
+  }[level];
+  if(!cfg) return '';
+  return `<span style="background:${cfg[0]};color:${cfg[1]};font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;letter-spacing:.04em;white-space:nowrap">${cfg[2]}</span>`;
+}
+
+function renderRole(d){
+  const accent='#fb7185';
+  const perms=d.entityPermissions||[];
+
+  const permsHtml=perms.length===0
+    ?`<div class="empty-notice">No permissions found for solution entities. (Solution entities may not be loaded yet.)</div>`
+    :`<div style="overflow-x:auto"><table class="data-table" style="font-size:11px;min-width:640px">
+        <thead><tr>
+          <th>Table</th>
+          <th style="text-align:center;width:52px">Create</th>
+          <th style="text-align:center;width:46px">Read</th>
+          <th style="text-align:center;width:46px">Write</th>
+          <th style="text-align:center;width:46px">Delete</th>
+          <th style="text-align:center;width:52px">Append</th>
+          <th style="text-align:center;width:62px">Append To</th>
+          <th style="text-align:center;width:52px">Assign</th>
+          <th style="text-align:center;width:46px">Share</th>
+        </tr></thead>
+        <tbody>${perms.map(p=>`<tr>
+          <td><div class="cell-main">${x(p.displayName)}</div><div class="cell-sub">${x(p.logicalName)}</div></td>
+          <td style="text-align:center">${privBadge(p.create)}</td>
+          <td style="text-align:center">${privBadge(p.read)}</td>
+          <td style="text-align:center">${privBadge(p.write)}</td>
+          <td style="text-align:center">${privBadge(p.delete)}</td>
+          <td style="text-align:center">${privBadge(p.append)}</td>
+          <td style="text-align:center">${privBadge(p.appendTo)}</td>
+          <td style="text-align:center">${privBadge(p.assign)}</td>
+          <td style="text-align:center">${privBadge(p.share)}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>`;
+
+  const usersTable=d.users.length===0
+    ?`<div class="empty-notice">No active users are directly assigned this role.</div>`
+    :`<table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Business Unit</th></tr></thead>
+       <tbody>${d.users.map(u=>`<tr>
+         <td>${x(u.name)}</td><td class="mono">${x(u.email)}</td><td>${x(u.businessUnit)}</td>
+       </tr>`).join('')}</tbody></table>`;
+
+  const teamsTable=d.teams.length===0
+    ?`<div class="empty-notice">No teams are assigned this role.</div>`
+    :`<table class="data-table"><thead><tr><th>Team Name</th><th>Business Unit</th><th>Type</th></tr></thead>
+       <tbody>${d.teams.map(t=>`<tr>
+         <td>${x(t.name)}</td><td>${x(t.businessUnit)}</td><td><span class="mono">${x(t.teamType)}</span></td>
+       </tr>`).join('')}</tbody></table>`;
+
+  const html=
+    `<div class="hdr-card">
+      <div class="hdr-bar" style="background:${accent}"></div>
+      <div class="hdr-top">
+        <div>
+          <div class="hdr-name">${x(d.name)}</div>
+          ${d.businessUnit?`<div class="hdr-sub">Business Unit: ${x(d.businessUnit)}</div>`:''}
+        </div>
+        <span class="type-chip chip-role">Security Role</span>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Entity Permissions <span class="section-count">${perms.length}</span></div>
+      ${permsHtml}
+    </div>
+    <div class="section">
+      <div class="section-title">Teams <span class="section-count">${d.teams.length}</span></div>
+      ${teamsTable}
+    </div>
+    <div class="section">
+      <details class="collapsible">
+        <summary><span class="section-title" style="margin:0">Users <span class="section-count">${d.users.length}</span></span></summary>
+        <div style="margin-top:8px">${usersTable}</div>
+      </details>
+    </div>`;
+
+  show(html,'Security Roles',`${perms.length} entities · ${d.users.length} user${d.users.length===1?'':'s'} · ${d.teams.length} team${d.teams.length===1?'':'s'}`);
+}
+
+// ── Markdown renderer ────────────────────────────────────────────────────────
+function renderDocumentation(d){
+  document.getElementById('toolbar-title').textContent='Documentation';
+  document.getElementById('statusbar').textContent=d.stats||'';
+  content.innerHTML=`<div class="md-doc">${mdToHtml(d.markdown)}</div>`;
+  content.style.display='block';
+  empty.style.display='none';
+  content.scrollTop=0;
+}
+
+function mdToHtml(md){
+  const lines=md.split('\n');
+  let html='',inTable=false,tableHead=true,inList=false,inBq=false;
+
+  const closers=()=>{
+    if(inTable){html+='</tbody></table>';inTable=false;tableHead=true;}
+    if(inList){html+='</ul>';inList=false;}
+    if(inBq){html+='</blockquote>';inBq=false;}
+  };
+
+  for(let i=0;i<lines.length;i++){
+    const raw=lines[i];
+    const t=raw.trim();
+
+    if(t.startsWith('# ')){closers();html+=`<h1>${inl(t.slice(2))}</h1>`;continue;}
+    if(t.startsWith('## ')){const r=t.slice(3);closers();html+=`<h2 id="${mdAnchor(r)}">${inl(r)}</h2>`;continue;}
+    if(t.startsWith('### ')){const r=t.slice(4);closers();html+=`<h3 id="${mdAnchor(r)}">${inl(r)}</h3>`;continue;}
+    if(t.startsWith('#### ')){const r=t.slice(5);closers();html+=`<h4 id="${mdAnchor(r)}">${inl(r)}</h4>`;continue;}
+    if(t==='---'){closers();html+='<hr>';continue;}
+
+    // Blockquote
+    if(t.startsWith('> ')){
+      if(!inBq){closers();html+='<blockquote>';inBq=true;}
+      else html+=' ';
+      html+=inl(t.slice(2));
+      continue;
+    }
+    if(inBq){html+='</blockquote>';inBq=false;}
+
+    // Table
+    if(t.startsWith('|')){
+      if(!inTable){closers();html+='<table class="data-table">';inTable=true;tableHead=true;}
+      if(/^\|[-\s|:]+\|$/.test(t)){if(tableHead){html+='</thead><tbody>';tableHead=false;}continue;}
+      const cells=t.split('|').slice(1,-1).map(c=>c.trim());
+      const tag=tableHead?'th':'td';
+      html+=`<tr>${cells.map(c=>`<${tag}>${inl(c)}</${tag}>`).join('')}</tr>`;
+      if(tableHead){html=''+html.replace('<table','<table').replace('<tr>','<thead><tr>');}
+      continue;
+    }
+    if(inTable){html+='</tbody></table>';inTable=false;tableHead=true;}
+
+    // List item (handles indented items too)
+    if(/^\s*- /.test(raw)){
+      if(!inList){if(inBq){html+='</blockquote>';inBq=false;}html+='<ul>';inList=true;}
+      const indent=raw.search(/\S/);
+      const text=t.slice(2);
+      html+=`<li style="${indent>0?'margin-left:'+(indent*3)+'px':''};">${inl(text)}</li>`;
+      continue;
+    }
+    if(inList){html+='</ul>';inList=false;}
+
+    if(t===''){continue;}
+
+    // *italic meta line*
+    if(t.startsWith('*')&&t.endsWith('*')&&!t.startsWith('**')){
+      html+=`<p class="meta">${inl(t.slice(1,-1))}</p>`;continue;
+    }
+    html+=`<p>${inl(t)}</p>`;
+  }
+  closers();
+  return html;
+}
+
+// Scroll the content pane to a heading by id
+function scrollToId(id){
+  const el=document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// Mirrors the C# MdAnchor: lowercase, keep [a-z0-9_], spaces/hyphens→hyphen
+function mdAnchor(text){
+  return text.toLowerCase()
+    .replace(/[^a-z0-9_ -]/g,'')
+    .replace(/\s+/g,'-')
+    .replace(/-+/g,'-')
+    .replace(/^-|-$/g,'');
+}
+
+function inl(s){
+  // Escape HTML first
+  s=s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Links [text](url) — handle before code so Choice links render correctly
+  s=s.replace(/\[([^\]]+)\]\(([^)]+)\)/g,(_,txt,href)=>{
+    if(href.startsWith('#')){
+      const id=href.slice(1);
+      return `<a href="javascript:void(0)" onclick="scrollToId('${id}')" style="color:var(--accent);text-decoration:underline;cursor:pointer">${txt}</a>`;
+    }
+    return `<a href="${href}" style="color:var(--accent)">${txt}</a>`;
+  });
+  // Bold **...**
+  s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  // Italic *...*  (single, not double)
+  s=s.replace(/(?<!\*)\*(?!\*)([^*]+)(?<!\*)\*(?!\*)/g,'<em>$1</em>');
+  // Inline code `...`
+  s=s.replace(/`([^`]+)`/g,'<span class="mono">$1</span>');
+  return s;
+}
+
+window.chrome=window.chrome||{};
+window.chrome.webview=window.chrome.webview||{addEventListener:()=>{}};
+window.chrome.webview.addEventListener('message',e=>{
+  try{
+    const m=JSON.parse(e.data);
+    if(m.type==='loadDocumentation') renderDocumentation(m.data);
+    else if(m.type==='loadOptionSet') renderOptionSet(m.data);
+    else if(m.type==='loadFlow') renderFlow(m.data);
+    else if(m.type==='loadRole') renderRole(m.data);
+    else if(m.type==='setTheme') document.documentElement.setAttribute('data-theme',m.theme);
+  }catch(err){console.error(err);}
+});
+</script>
+</body>
+</html>
