@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>XrmDataversePlugin.SolutionDocumentor</id>
+    <version>1.0.1</version>
+    <title>Solution Documentor for XrmToolBox</title>
+    <authors>Nate Halliwell</authors>
+    <owners></owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/Power-TT-People/solution-documentor</projectUrl>
+    <iconUrl>https://iili.io/BpzrdRn.png</iconUrl>
+    <description>An XrmToolBox plugin for visualizing and documenting Microsoft Dataverse solutions. Features include ERD generation, option sets browser, security roles viewer, flow explorer, and comprehensive markdown documentation generation.</description>
+    <releaseNotes>Version 1.0.1: Updated package structure with DLLs in Plugins folder</releaseNotes>
+    <copyright>Copyright © 2026 Nate Halliwell</copyright>
+    <tags>xrmtoolbox dynamics365 dataverse powerplatform crm erd documentation dynamics-crm</tags>
+    <repository type="git" url="https://github.com/Power-TT-People/solution-documentor" />
+    <dependencies>
+      <group targetFramework=".NETFramework4.8">
+        <dependency id="Microsoft.Web.WebView2" version="1.0.3351.48" exclude="Build,Analyzers" />
+        <dependency id="MscrmTools.Xrm.Connection" version="1.2025.9.64" exclude="Build,Analyzers" />
+        <dependency id="Newtonsoft.Json" version="13.0.3" exclude="Build,Analyzers" />
+        <dependency id="System.ComponentModel.Composition" version="10.0.8" exclude="Build,Analyzers" />
+        <dependency id="XrmToolBoxPackage" version="1.2025.10.74" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="System.IO" targetFramework=".NETFramework4.8" />
+      <frameworkAssembly assemblyName="System.Net.Http" targetFramework=".NETFramework4.8" />
+      <frameworkAssembly assemblyName="System.Runtime" targetFramework=".NETFramework4.8" />
+      <frameworkAssembly assemblyName="System.Security.Cryptography.Algorithms" targetFramework=".NETFramework4.8" />
+      <frameworkAssembly assemblyName="System.Security.Cryptography.Encoding" targetFramework=".NETFramework4.8" />
+      <frameworkAssembly assemblyName="System.Security.Cryptography.Primitives" targetFramework=".NETFramework4.8" />
+      <frameworkAssembly assemblyName="System.Security.Cryptography.X509Certificates" targetFramework=".NETFramework4.8" />
+    </frameworkAssemblies>
+  </metadata>
+  <files>
+    <!-- Main plugin assembly - in Plugins subfolder as requested -->
+    <file src="bin\Debug\SolutionDocumentor.dll" target="lib\net48\Plugins\SolutionDocumentor.dll" />
+    <file src="bin\Debug\SolutionDocumentor.pdb" target="lib\net48\Plugins\SolutionDocumentor.pdb" />
+    <!-- README at package root -->
+    <file src="README.md" target="" />
+  </files>
+</package>
