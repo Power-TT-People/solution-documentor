@@ -10,10 +10,30 @@
     <Description>Visualise Dataverse solutions as ERDs, document flows, browse option sets and security roles, and output full fledged solution documentation.</Description>
     <Authors>Nate Halliwell</Authors>
     <Company>Pragmatic Works</Company>
-    <Product>Nate Halliwell</Product>
+    <Product>Solution Documentor</Product>
     <AssemblyTitle>Solution Documentor</AssemblyTitle>
     <Copyright>Copyright © 2026 Nate Halliwell</Copyright>
-    <Version>1.0.0</Version>
+    <Version>1.0.6</Version>
+
+    <!-- Don't auto-include build output in lib/net48/ — XrmToolBox expects lib/net452/Plugins/ -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- Suppress mismatch warning from intentional net452/Plugins placement -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+
+    <!-- NuGet Package Metadata -->
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>XrmDataversePlugin.SolutionDocumentor</PackageId>
+    <Title>Solution Documentor for XrmToolBox</Title>
+    <PackageDescription>An XrmToolBox plugin for visualizing and documenting Microsoft Dataverse solutions. Features include ERD generation, option sets browser, security roles viewer, flow explorer, and comprehensive markdown documentation generation.</PackageDescription>
+    <PackageTags>xrmtoolbox;dynamics365;dataverse;powerplatform;crm;erd;documentation;dynamics-crm</PackageTags>
+    <PackageProjectUrl>https://github.com/Power-TT-People/solution-documentor</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Power-TT-People/solution-documentor</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>v1.0.6: Synced assembly version with package version.</PackageReleaseNotes>
+    <PackageIconUrl>https://iili.io/BpzrdRn.png</PackageIconUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,18 +41,58 @@
     <EmbeddedResource Include="DocViewer.html" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <!-- System.ComponentModel.Composition is a .NET 4.8 framework assembly (GAC).
+       Reference it directly instead of the NuGet package to avoid version conflicts. -->
+  <ItemGroup>
+    <Reference Include="System.ComponentModel.Composition" />
+  </ItemGroup>
+
+  <!-- Auto-copy to XrmToolBox Plugins folder on every build (dev convenience) -->
   <Target Name="CopyToXrmToolBox" AfterTargets="Build">
     <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll"
           DestinationFolder="$(APPDATA)\MscrmTools\XrmToolBox\Plugins"
           SkipUnchangedFiles="false" />
   </Target>
 
+  <!-- XrmToolBox plugin convention: all DLLs go in lib/net452/Plugins/ inside the package.
+       The installer copies that folder's contents to the user's XrmToolBox Plugins directory.
+       WebView2 managed DLLs are bundled here too since XrmToolBox does not ship them.
+       The WebView2 native runtime is pre-installed system-wide via Windows/Edge. -->
+  <Target Name="BundlePluginFiles" BeforeTargets="_GetPackageFiles">
+    <ItemGroup>
+      <None Include="$(OutputPath)$(AssemblyName).dll"
+            Pack="true" PackagePath="lib/net452/Plugins/" Visible="false" />
+      <None Include="$(OutputPath)Microsoft.Web.WebView2.Core.dll"
+            Pack="true" PackagePath="lib/net452/Plugins/" Visible="false"
+            Condition="Exists('$(OutputPath)Microsoft.Web.WebView2.Core.dll')" />
+      <None Include="$(OutputPath)Microsoft.Web.WebView2.WinForms.dll"
+            Pack="true" PackagePath="lib/net452/Plugins/" Visible="false"
+            Condition="Exists('$(OutputPath)Microsoft.Web.WebView2.WinForms.dll')" />
+    </ItemGroup>
+  </Target>
+
   <ItemGroup>
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3967.48" />
-    <PackageReference Include="MscrmTools.Xrm.Connection" Version="1.2025.9.64" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="System.ComponentModel.Composition" Version="10.0.8" />
-    <PackageReference Include="XrmToolBoxPackage" Version="1.2025.10.74" />
+    <!-- WebView2: PrivateAssets=all so it is NOT listed as a NuGet dependency.
+         The managed DLLs are bundled directly via the target above instead. -->
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3967.48">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+
+    <!-- These packages are provided by XrmToolBox itself — mark as private so they
+         are NOT listed as NuGet dependencies and cannot cause version conflicts. -->
+    <PackageReference Include="MscrmTools.Xrm.Connection" Version="1.2025.9.64">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="XrmToolBoxPackage" Version="1.2025.10.74">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>
