@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>XrmDataversePlugin.SolutionDocumentor</id>
-    <version>1.0.1</version>
+    <version>1.0.7</version>
     <title>Solution Documentor for XrmToolBox</title>
     <authors>Nate Halliwell</authors>
     <owners></owners>
@@ -11,7 +11,7 @@
     <projectUrl>https://github.com/Power-TT-People/solution-documentor</projectUrl>
     <iconUrl>https://iili.io/BpzrdRn.png</iconUrl>
     <description>An XrmToolBox plugin for visualizing and documenting Microsoft Dataverse solutions. Features include ERD generation, option sets browser, security roles viewer, flow explorer, and comprehensive markdown documentation generation.</description>
-    <releaseNotes>Version 1.0.1: Updated package structure with DLLs in Plugins folder</releaseNotes>
+    <releaseNotes>v1.0.7: Fixed marketplace compatibility detection by properly declaring XrmToolBoxPackage dependency.</releaseNotes>
     <copyright>Copyright © 2026 Nate Halliwell</copyright>
     <tags>xrmtoolbox dynamics365 dataverse powerplatform crm erd documentation dynamics-crm</tags>
     <repository type="git" url="https://github.com/Power-TT-People/solution-documentor" />

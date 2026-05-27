@@ -13,7 +13,7 @@
     <Product>Solution Documentor</Product>
     <AssemblyTitle>Solution Documentor</AssemblyTitle>
     <Copyright>Copyright © 2026 Nate Halliwell</Copyright>
-    <Version>1.0.6</Version>
+    <Version>1.0.7</Version>
 
     <!-- Don't auto-include build output in lib/net48/ — XrmToolBox expects lib/net452/Plugins/ -->
     <IncludeBuildOutput>false</IncludeBuildOutput>
@@ -31,7 +31,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>v1.0.6: Synced assembly version with package version.</PackageReleaseNotes>
+    <PackageReleaseNotes>v1.0.7: Fixed marketplace compatibility detection by properly declaring XrmToolBoxPackage dependency.</PackageReleaseNotes>
     <PackageIconUrl>https://iili.io/BpzrdRn.png</PackageIconUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
@@ -47,6 +47,10 @@
 
   <!-- System.ComponentModel.Composition is a .NET 4.8 framework assembly (GAC).
        Reference it directly instead of the NuGet package to avoid version conflicts. -->
+  <ItemGroup>
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
@@ -91,7 +95,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="XrmToolBoxPackage" Version="1.2025.10.74">
-      <PrivateAssets>all</PrivateAssets>
+      <ExcludeAssets>runtime;native;contentfiles</ExcludeAssets>
     </PackageReference>
   </ItemGroup>
 
